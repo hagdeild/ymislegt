@@ -15,6 +15,7 @@ data_tbl <- read_csv2(
   drop_na()
 
 
+# 2.0.0 ÍSLENSKA ----
 target <- 0.025
 
 plot_tbl <- data_tbl %>%
@@ -133,6 +134,105 @@ ggplot(plot_tbl, aes(date, value)) +
 
 ggsave(
   "01_output/2026-03-23_verdbolga-og-markmid.png",
+  width = 10,
+  height = 6,
+  dpi = 150
+)
+
+
+# 3.0.0 ENSKA ----
+target <- 0.025
+
+plot_tbl <- data_tbl %>%
+  arrange(date) %>%
+  mutate(
+    on_target = value <= target,
+    spell_id = cumsum(
+      on_target != dplyr::lag(on_target, default = first(on_target))
+    )
+  )
+
+spell_tbl <- plot_tbl %>%
+  filter(on_target) %>%
+  count(spell_id, name = "months_in_spell")
+
+total_months <- nrow(plot_tbl)
+months_on_target <- sum(plot_tbl$on_target, na.rm = TRUE)
+pct_on_target <- mean(plot_tbl$on_target, na.rm = TRUE)
+episodes_on_target <- sum(
+  plot_tbl$on_target & !dplyr::lag(plot_tbl$on_target, default = FALSE),
+  na.rm = TRUE
+)
+longest_spell <- if (nrow(spell_tbl) == 0) {
+  0L
+} else {
+  max(spell_tbl$months_in_spell)
+}
+
+title_txt <- sprintf(
+  "Inflation at or below the 2.5%% target in %s of months",
+  scales::percent(pct_on_target, accuracy = 0.1)
+)
+
+subtitle_txt <- sprintf(
+  "%s of %s months | %s separate periods | longest stretch: %s months",
+  scales::comma(months_on_target),
+  scales::comma(total_months),
+  episodes_on_target,
+  longest_spell
+)
+
+label_txt <- sprintf(
+  "At/below target\n%s / %s months\n%s",
+  scales::comma(months_on_target),
+  scales::comma(total_months),
+  scales::percent(pct_on_target, accuracy = 0.1)
+)
+
+ggplot(plot_tbl, aes(date, value)) +
+  annotate(
+    "rect",
+    xmin = -Inf,
+    xmax = Inf,
+    ymin = -Inf,
+    ymax = target,
+    fill = "#d9f0d3",
+    alpha = 0.55
+  ) +
+  geom_line(color = "#0b3954") +
+  geom_point(
+    data = subset(plot_tbl, on_target),
+    size = 0.8,
+    color = "#087f5b"
+  ) +
+  geom_hline(
+    yintercept = target,
+    linetype = "22",
+    linewidth = 0.9,
+    color = "#b02a37"
+  ) +
+  # annotate(
+  #   "label",
+  #   x = Inf, y = Inf,
+  #   hjust = 1.05, vjust = 1.1,
+  #   label = label_txt,
+  #   size = 3.8,
+  #   linewidth = 0.25,
+  #   fill = "white", color = "#111111"
+  # ) +
+  scale_y_continuous(labels = scales::label_percent(accuracy = 0.1)) +
+  labs(
+    title = title_txt,
+    subtitle = subtitle_txt,
+    x = NULL,
+    y = NULL,
+    caption = "Red line = inflation target (2.5%)"
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(panel.grid.minor = element_blank())
+
+ggsave(
+  "01_output/2026-03-23_verdbolga-og-markmid_en.png",
   width = 10,
   height = 6,
   dpi = 150
