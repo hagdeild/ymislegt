@@ -28,20 +28,23 @@ land_tbl <- tibble(
   country = c("Danmörk", "Finnland", "Ísland", "Noregur", "Svíþjóð")
 )
 
-hicp_tbl <- hicp_raw_tbl |>
+hicp_indexed_tbl <- hicp_raw_tbl |>
   rename(date = time) |>
   select(geo, date, values) |>
-  left_join(land_tbl, by = "geo")
+  left_join(land_tbl, by = "geo") |>
+  arrange(country, date) |>
+  group_by(country) |>
+  mutate(index = values / values[1] * 100) |>
+  ungroup()
 
-# Index to 100 in January 2020
-base_values <- hicp_tbl |>
-  filter(date == as.Date("2020-01-01")) |>
-  select(geo, base = values)
+# # Index to 100 in January 2020
+# base_values <- hicp_tbl |>
+#   filter(date == as.Date("2020-01-01")) |>
+#   select(geo, base = values)
 
-hicp_indexed_tbl <- hicp_tbl |>
-  left_join(base_values, by = "geo") |>
-  mutate(index = values / base * 100)
-
+# hicp_indexed_tbl <- hicp_tbl |>
+#   left_join(base_values, by = "geo") |>
+#   mutate(index = values / base * 100)
 
 # 4.0.0 PLOT ----
 
@@ -54,7 +57,7 @@ nordic_colors <- c(
 )
 
 hicp_indexed_tbl |>
-  filter(date >= as.Date("2020-01-01")) |>
+  #filter(date >= as.Date("2020-01-01")) |>
   mutate(country = fct_reorder2(country, date, index)) |>
   ggplot(aes(date, index, color = country)) +
   geom_line(linewidth = 0.8) +
@@ -65,9 +68,9 @@ hicp_indexed_tbl |>
   ) +
   labs(
     x = NULL,
-    y = "Vísitala (janúar 2020 = 100)",
+    y = "Vísitala (janúar 1996 = 100)",
     title = "Samræmd vísitala neysluverðs á Norðurlöndunum",
-    subtitle = "HICP, janúar 2020 = 100",
+    subtitle = "HICP, janúar 1996 = 100",
     caption = "Heimild: Eurostat (prc_hicp_midx)"
   ) +
   theme_classic() +
