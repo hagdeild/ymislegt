@@ -65,6 +65,6 @@ laun_tbl |>
   labs(
     x = NULL,
     y = NULL,
-    title = "Raunalun eftir launþegahópi og starfsstétt",
+    title = "Raunlaun eftir launþegahópi og starfsstétt",
     subtitle = "Vísitala = 100 árið 2014"
   )
