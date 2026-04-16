@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Rscript -e \"x <- readxl::read_excel\\('00_data/cb_reaction.xlsx'\\); print\\(names\\(x\\)\\); print\\(head\\(x, 20\\)\\); print\\(tail\\(x, 10\\)\\); cat\\('nrow:', nrow\\(x\\), '\\\\n'\\)\")",
+      "Bash(Rscript -e \"print\\(readxl::excel_sheets\\('00_data/cb_reaction.xlsx'\\)\\)\")",
+      "Bash(Rscript 00_scripts/2026-04-16_cb-reaction-function.R)"
+    ]
+  }
+}
